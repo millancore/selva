@@ -2,7 +2,8 @@ package main
 
 import (
 	"context"
-	"github.com/joshuarubin/go-sway"
+    "fmt"
+    "github.com/joshuarubin/go-sway"
     "github.com/millancore/selva"
 	"log"
 )
@@ -20,6 +21,16 @@ func (handler eventHandler) Window(ctx context.Context, ev sway.WindowEvent) {
         log.Fatal(err)
     }
 
+    if ev.Change == "title" {
+        return
+    }
+
+    if ev.Change == "urgent" {
+        client.Sway.RunCommand(ctx, fmt.Sprintf("[con_id=%d] focus", ev.Container.ID))
+    }
+
+
+//    fmt.Println(ev.Change)
     selva.AutoResize(ctx, client, &selva.Node{Node: rootNode})
 }
 
