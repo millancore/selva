@@ -3,12 +3,15 @@ package selva
 import (
 	"context"
 	"time"
+
+	"github.com/joshuarubin/go-sway"
 )
 
-func AutoResize(ctx context.Context, client Client, rootNode *Node) {
-	time.Sleep(100 * time.Millisecond)
+func AutoResize(ctx context.Context, client Client, ws *Workspace, focused *sway.Node) {
+	time.Sleep(30 * time.Millisecond)
 
-	visibleNodes := rootNode.VisibleNodes()
+	visibleNodes := ws.Nodes
+
 	config := client.Config
 
 	// If only exist a visible Container
@@ -16,7 +19,6 @@ func AutoResize(ctx context.Context, client Client, rootNode *Node) {
 		return
 	}
 
-	focused := rootNode.FocusedNode()
 	if focused == nil {
 		return
 	}
@@ -30,6 +32,8 @@ func AutoResize(ctx context.Context, client Client, rootNode *Node) {
 	leftWidth := (config.OuputWidth - config.FocusWidth) / (len(visibleNodes) - 1)
 
 	for _, node := range visibleNodes {
+
+		node := Node{node}
 
 		// Dont change size for focused
 		if node.Focused {
@@ -45,12 +49,25 @@ func AutoResize(ctx context.Context, client Client, rootNode *Node) {
 
 		// If current node is to the LEFT of focused
 		if node.Rect.X < focused.Rect.X {
-			client.Sway.RunCommand(ctx, node.Resize(Shrink(Right, reduce)))
+
+			// smooth reduce
+			for reduce > 0 {
+				client.Sway.RunCommand(ctx, node.Resize(Shrink(Right, 1)))
+				reduce--
+			}
+
+			//client.Sway.RunCommand(ctx, node.Resize(Shrink(Right, reduce)))
 		}
 
 		// If current node is to the RIGTH of focused
 		if node.Rect.X > focused.Rect.X {
-			client.Sway.RunCommand(ctx, node.Resize(Shrink(Left, reduce)))
+
+			for reduce > 0 {
+				client.Sway.RunCommand(ctx, node.Resize(Shrink(Left, 1)))
+				reduce--
+			}
+
+			//client.Sway.RunCommand(ctx, node.Resize(Shrink(Left, reduce)))
 		}
 	}
 }
